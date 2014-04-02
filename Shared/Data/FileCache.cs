@@ -18,7 +18,7 @@ namespace XamarinStore
 		}
 		public static Func<string,bool> FileExists;
 		static bool initialized;
-		static IFolder tempfolder;
+		public static IFolder Tempfolder;
 		static IFolder imageFolder;
 		static async Task<bool> init()
 		{
@@ -26,7 +26,7 @@ namespace XamarinStore
 			if (initialized)
 				return true;
 			IFolder rootFolder = FileSystem.Current.LocalStorage;
-			tempfolder = await rootFolder.CreateFolderAsync ("Cache",
+			Tempfolder = await rootFolder.CreateFolderAsync ("Cache",
 				CreationCollisionOption.OpenIfExists);
 			imageFolder = await rootFolder.CreateFolderAsync ("Images",
 				CreationCollisionOption.OpenIfExists);
@@ -53,7 +53,7 @@ namespace XamarinStore
 		public static async Task<string> Download(string url, string fileName)
 		{
 			try{
-				var path = Path.Combine (tempfolder.Path, fileName);
+				var path = Path.Combine (Tempfolder.Path, fileName);
 				var destination = Path.Combine(imageFolder.Path,fileName);
 				if(FileExists != null && FileExists(destination))
 					return destination;
@@ -91,7 +91,7 @@ namespace XamarinStore
 			try{
 				var client = new HttpClient ();
 				var data = await client.GetByteArrayAsync (url);
-				file = await tempfolder.CreateFileAsync (fileName,
+				file = await Tempfolder.CreateFileAsync (fileName,
 					CreationCollisionOption.ReplaceExisting);
 				using(var fileStream = await file.OpenAsync (FileAccess.ReadAndWrite)){
 					fileStream.Write (data, 0, data.Length);

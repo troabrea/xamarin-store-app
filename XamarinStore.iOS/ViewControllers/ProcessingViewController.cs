@@ -269,7 +269,7 @@ namespace XamarinStore.iOS
 					if(Tweet != null)
 						Tweet();
 				};
-				if(TWTweetComposeViewController.CanSendTweet)
+				//if(TWTweetComposeViewController.CanSendTweet)
 					AddSubview(twitter);
 
 				AddSubview(done = new ImageButton{

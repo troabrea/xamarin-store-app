@@ -246,7 +246,7 @@ namespace XamarinStore
 					SizeLabel.Text = product.Size.Description;
 					ColorLabel.Text = product.Color.Name;
 					PriceLabel.Text = product.PriceDescription;
-					var imageTask = FileCache.Download (product.ImageForSize (320));
+					var imageTask = FileCache.Download (product.ImageForSize (UIScreen.MainScreen.Scale * UIApplication.SharedApplication.KeyWindow.Bounds.Width));
 					if(!imageTask.IsCompleted)
 						//Put default before doing the web request;
 						ImageView.Image = Image.Value;

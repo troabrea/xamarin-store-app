@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using Xamarin.SSO.Client;
 using System.Net.Http;
 using System.Diagnostics;
+using PCLStorage;
 
 namespace XamarinStore
 {
@@ -28,6 +29,14 @@ namespace XamarinStore
 
 		public async Task<bool> Login (string username, string password)
 		{
+			await Task.Delay (1000);
+			CurrentUser = new  User {
+				LastName = "de Icaza",
+				FirstName = "Miguel",
+				Email = "miguel@xamarin.com",
+			};
+			return !(string.IsNullOrEmpty (username) || string.IsNullOrEmpty (password));
+
 			AccountResponse response;
 			try {
 				var request = client.CreateToken (username, password);
@@ -62,11 +71,15 @@ namespace XamarinStore
 					//extraParams = "?includeMonkeys=true";
 
 					var request = CreateClient ();
+					var response = await ReadFile("GetProducts");
 
-					var response = await request.GetStringAsync ("products" + extraParams);
-
+					if(string.IsNullOrEmpty(response)){
+						response = await request.GetStringAsync ("products" + extraParams);
+						await WriteFile("GetProducts",response);
+					}
 
 					products = await Task.Run (() => Newtonsoft.Json.JsonConvert.DeserializeObject<List<Product>> (response));
+
 				} catch (Exception ex) {
 					Debug.WriteLine (ex);
 					products = new List<Product> ();
@@ -106,8 +119,13 @@ namespace XamarinStore
 
 				if (countries.Count > 0)
 					return countries;
+
 				var httpClient = CreateClient();
-				string response =  await httpClient.GetStringAsync("Countries");
+				var response = await ReadFile("GetCountries");
+				if(string.IsNullOrEmpty(response)){
+					response =  await httpClient.GetStringAsync("Countries");
+					await WriteFile("GetCountries",response);
+				}
 				countries =  await Task.Run(() => Newtonsoft.Json.JsonConvert.DeserializeObject<List<Country>> (response));
 				return countries;
 			} catch (Exception ex) {
@@ -196,6 +214,9 @@ namespace XamarinStore
 		{
 
 			try {
+				await Task.Delay(1000);
+				return new OrderResult{
+					Success = true,};
 				var content = CurrentOrder.GetJson (user);
 				var request = CreateClient ();
 
@@ -214,6 +235,22 @@ namespace XamarinStore
 				};
 			}
 		}
+		public async Task WriteFile(string file, string data)
+		{
+			var stream = await FileCache.Tempfolder.CreateFileAsync (file,
+				CreationCollisionOption.ReplaceExisting);
+			await stream.WriteAllTextAsync (data);
+		
+		}
+		public async Task<string> ReadFile(string fileName)
+		{
+			var exists = await FileCache.Tempfolder.CheckExistsAsync (fileName);
+			if (exists != ExistenceCheckResult.FileExists)
+				return "";
+			var file = await FileCache.Tempfolder.GetFileAsync (fileName);
+			return await file.ReadAllTextAsync ();
+		}
+
 	}
 }
 

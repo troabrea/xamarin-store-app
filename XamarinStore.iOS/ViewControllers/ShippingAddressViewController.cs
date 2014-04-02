@@ -34,40 +34,40 @@ namespace XamarinStore
 
 			Cells.Add (new CustomViewCell (PhoneNumberField = new TextEntryView {
 				PlaceHolder = "Phone Number",
-				Value = user.Phone,
+				Value = "(855) 926-2746",
 				KeyboardType = UIKeyboardType.NumberPad,
 			}));
 
 			Cells.Add (new CustomViewCell (AddressField = new TextEntryView {
 				PlaceHolder = "Address",
-				Value = user.Address,
+				Value = "2 Park Plaza",
 			}));
 
 			Cells.Add (new CustomViewCell (Address2Field = new TextEntryView {
 				PlaceHolder = "Address",
-				Value = user.Address2,
+				Value =  "7th Floor",
 			}));
 			Cells.Add (new CustomViewCell (CityField = new TextEntryView {
 				PlaceHolder = "City",
-				Value = user.City,
+				Value = "Boston",
 			}));
 
 			Cells.Add (new CustomViewCell (PostalField = new TextEntryView {
 				PlaceHolder = "Postal Code",
-				Value = user.ZipCode,
+				Value = "02116",
 			}));
 
 			Cells.Add (new CustomViewCell (CountryField = new AutoCompleteTextEntry {
 				PlaceHolder = "Country",
 				Title = "Select your Country",
-				Value = user.Country,
+				Value = "United States",
 				ValueChanged = (v) => GetStates (),
 				PresenterView = this,
 			}));
 
 			Cells.Add (new CustomViewCell (StateField = new AutoCompleteTextEntry {
 				PlaceHolder = "State",
-				Value = user.State,
+				Value = "MA",
 				Title = "Select your state",
 				PresenterView = this,
 			}));
