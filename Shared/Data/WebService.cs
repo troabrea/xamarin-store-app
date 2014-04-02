@@ -237,6 +237,7 @@ namespace XamarinStore
 		}
 		public async Task WriteFile(string file, string data)
 		{
+			await FileCache.Init ();
 			var stream = await FileCache.Tempfolder.CreateFileAsync (file,
 				CreationCollisionOption.ReplaceExisting);
 			await stream.WriteAllTextAsync (data);
@@ -244,6 +245,7 @@ namespace XamarinStore
 		}
 		public async Task<string> ReadFile(string fileName)
 		{
+			await FileCache.Init ();
 			var exists = await FileCache.Tempfolder.CheckExistsAsync (fileName);
 			if (exists != ExistenceCheckResult.FileExists)
 				return "";

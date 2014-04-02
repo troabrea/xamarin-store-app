@@ -14,27 +14,40 @@ namespace XamarinStore
 	{
 		static FileCache()
 		{
-			init ();
+			Init ();
 		}
 		public static Func<string,bool> FileExists;
 		static bool initialized;
 		public static IFolder Tempfolder;
 		static IFolder imageFolder;
+		static Task<bool> initTask;
+		public static async Task<bool> Init()
+		{
+
+			if (initialized)
+				return true;
+			if(initTask != null)
+				return await initTask;
+
+			initTask = init ();
+			await initTask;
+			initTask = null;
+			return initialized = true;
+		}
 		static async Task<bool> init()
 		{
 			try{
-			if (initialized)
+				IFolder rootFolder = FileSystem.Current.LocalStorage;
+				Tempfolder = await rootFolder.CreateFolderAsync ("Cache",
+					CreationCollisionOption.OpenIfExists);
+				imageFolder = await rootFolder.CreateFolderAsync ("Images",
+					CreationCollisionOption.OpenIfExists);
 				return true;
-			IFolder rootFolder = FileSystem.Current.LocalStorage;
-			Tempfolder = await rootFolder.CreateFolderAsync ("Cache",
-				CreationCollisionOption.OpenIfExists);
-			imageFolder = await rootFolder.CreateFolderAsync ("Images",
-				CreationCollisionOption.OpenIfExists);
 			}
 			catch(Exception ex) {
 				Debug.WriteLine (ex);
 			}
-			return initialized = true;
+			return false;
 		}
 
 		public static async Task<string> Download(string url)
