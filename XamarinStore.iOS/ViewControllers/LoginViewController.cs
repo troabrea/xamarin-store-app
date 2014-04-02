@@ -7,10 +7,6 @@ namespace XamarinStore.iOS
 {
 	public class LoginViewController : UIViewController
 	{
-		// TODO: Enter your Xamarin account email address here
-		readonly string XamarinAccountEmail = "";
-
-
 		UIView ContentView;
 		LoginView LoginView;
 		UIScrollView scrollView;
@@ -84,6 +80,9 @@ namespace XamarinStore.iOS
 			NSNotificationCenter.DefaultCenter.RemoveObservers (new []{UIKeyboard.WillHideNotification,UIKeyboard.WillShowNotification});
 		}
 
+		// TODO: Enter your Xamarin account email address here
+		// If you do not have a Xamarin Account please sign up here: https://store.xamarin.com/account/register
+		readonly string XamarinAccountEmail = "";
 		async void Login (string username, string password)
 		{
 
@@ -94,6 +93,8 @@ namespace XamarinStore.iOS
 				var canContinue = await WebService.Shared.PlaceOrder (WebService.Shared.CurrentUser, true);
 				if (!canContinue.Success) {
 					new UIAlertView ("Sorry", "Only one shirt per person. Edit your cart and try again.", null, "OK").Show();
+					BTProgressHUD.Dismiss ();
+					return;
 				}
 			}
 

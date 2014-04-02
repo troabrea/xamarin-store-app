@@ -16,8 +16,6 @@ namespace XamarinStore
 {
 	public class LoginFragment : Fragment
 	{
-		// TODO: Enter your Xamarin account email address here
-		readonly string XamarinAccountEmail = "";
 
 		public event Action LoginSucceeded = delegate {};
 
@@ -87,10 +85,14 @@ namespace XamarinStore
 			imageView.SetImageDrawable (new CircleDrawable (image));
 		}
 
+		// TODO: Enter your Xamarin account email address here
+		// If you do not have a Xamarin Account please sign up here: https://store.xamarin.com/account/register
+		readonly string XamarinAccountEmail = "";
 		async void Login (string username, string password)
 		{
-			var progressDialog = ProgressDialog.Show(this.Activity, "Please wait...", "Logging in", true);
-			login.Enabled = false;
+			var progressDialog = ProgressDialog.Show (this.Activity, "Please wait...", "Logging in", true);
+			this.login.Enabled = false;
+			this.password.Enabled = false;
 			var success = await WebService.Shared.Login (username, password);
 			if (success) {
 				var canContinue = await WebService.Shared.PlaceOrder (WebService.Shared.CurrentUser, true);
@@ -103,7 +105,8 @@ namespace XamarinStore
 			else 
 				Toast.MakeText (this.Activity, "Please verify your Xamarin account credentials and try again", ToastLength.Long).Show();
 
-			login.Enabled = true;
+			this.login.Enabled = true;
+			this.password.Enabled = true;
 			progressDialog.Hide ();
 			progressDialog.Dismiss ();
 
