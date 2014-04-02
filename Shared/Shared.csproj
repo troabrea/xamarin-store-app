@@ -49,6 +49,7 @@
     <Compile Include="Models\User.cs" />
     <Compile Include="SSO\UserModels.cs" />
     <Compile Include="SSO\XamarinSSOClient.cs" />
+    <Compile Include="Helpers\MD5.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Portable\$(TargetFrameworkVersion)\Microsoft.Portable.CSharp.targets" />
   <ItemGroup>
@@ -65,9 +66,6 @@
     </Reference>
     <Reference Include="System.Net.Http.Extensions">
       <HintPath>..\packages\Microsoft.Net.Http.2.2.18\lib\portable-net40+sl4+win8+wp71\System.Net.Http.Extensions.dll</HintPath>
-    </Reference>
-    <Reference Include="CryptSharp">
-      <HintPath>..\packages\CryptSharpOfficial.2.0.0.0\lib\CryptSharp.dll</HintPath>
     </Reference>
     <Reference Include="Portable.Text.Encoding">
       <HintPath>..\packages\Portable.Text.Encoding.0.2.0.0\lib\portable-net45+wp8+win8\Portable.Text.Encoding.dll</HintPath>

@@ -4,7 +4,6 @@ using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using System.Net.Http;
-using CryptSharp;
 
 namespace XamarinStore
 {
@@ -25,23 +24,10 @@ namespace XamarinStore
 			return _url + hash + "&s=" + size.ToString () + "&r=" + rating.ToString ().ToLower ();
 		}
 
-		public static async Task<byte[]> GetImageBytes (string email, int size, Rating rating = Rating.PG)
-		{
-			var url = GetURL (email, size, rating);
-			var client = new HttpClient ();
-			return await client.GetByteArrayAsync (url);
-		}
-
 		static string MD5Hash (string input)
 		{
-			var hasher = new MD5Crypter();
-			var builder = new StringBuilder ();
-			byte[] data = Encoding.UTF8.GetBytes (hasher.Crypt (input));
-
-			foreach (byte datum in data)
-				builder.Append (datum.ToString ("x2"));
-
-			return builder.ToString ();
+			var md5 = MD5Core.GetHashString (input).ToLower();
+			return md5;
 		}
 	}
 }

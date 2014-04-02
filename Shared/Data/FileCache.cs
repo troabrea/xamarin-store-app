@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Net.Http;
 using PCLStorage;
 using System.Diagnostics;
-using CryptSharp;
 
 namespace XamarinStore
 {
@@ -120,9 +119,7 @@ namespace XamarinStore
 		public static Func<string,string,Task> ProcessImage;
 		static string GetFileName(String hrefLink)
 		{
-			return hrefLink.GetHashCode ().ToString ();
-
-			//return Path.GetFileName(Uri.UnescapeDataString(hrefLink).Replace("/", "\\"));
+			return MD5Core.GetHashString(hrefLink);
 		}
 
 

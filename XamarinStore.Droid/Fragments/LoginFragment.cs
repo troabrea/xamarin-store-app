@@ -80,9 +80,8 @@ namespace XamarinStore
 		{
 			//Get the correct size in pixels
 			var px = (int)TypedValue.ApplyDimension(ComplexUnitType.Dip, 85, Activity.Resources.DisplayMetrics);
-			var data = await Gravatar.GetImageBytes (XamarinAccountEmail, px);
-			var image = await BitmapFactory.DecodeByteArrayAsync (data, 0, data.Length);
-			imageView.SetImageDrawable (new CircleDrawable (image));
+			var file = await FileCache.Download (Gravatar.GetURL (XamarinAccountEmail, px));
+			imageView.SetImageDrawable (new CircleDrawable (BitmapFactory.DecodeFile(file)));
 		}
 
 		// TODO: Enter your Xamarin account email address here
