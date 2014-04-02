@@ -33,23 +33,6 @@ namespace XamarinStore
 			return FromHex (hex);
 		}
 
-		#if __IOS__
-		public UIColor ToUIColor ()
-		{
-			return UIColor.FromRGB ((float)R, (float)G, (float)B);
-		}
-
-		public static implicit operator UIColor (Color color)
-		{
-			return color.ToUIColor ();
-		}
-
-		public static implicit operator CGColor (Color color)
-		{
-			return color.ToUIColor ().CGColor;
-		}
-		#endif
-
 		#if __ANDROID__
 		public Android.Graphics.Color ToAndroidColor ()
 		{

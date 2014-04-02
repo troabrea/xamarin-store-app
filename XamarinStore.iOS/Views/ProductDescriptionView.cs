@@ -47,7 +47,7 @@ namespace XamarinStore
 				{
 					BackgroundColor = UIColor.Clear,
 					Text = "Price",
-					TextColor = Color.Blue,
+					TextColor = Color.Blue.ToUIColor(),
 					TranslatesAutoresizingMaskIntoConstraints = false,
 				};
 			Price.SizeToFit();

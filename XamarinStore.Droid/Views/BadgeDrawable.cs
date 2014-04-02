@@ -30,7 +30,7 @@ namespace XamarinStore
 			this.child = child;
 			badgePaint = new Paint {
 				AntiAlias = true,
-				Color = Color.Blue,
+				Color = Color.Blue.ToAndroidColor(),
 			};
 			textPaint = new Paint {
 				AntiAlias = true,

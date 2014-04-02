@@ -3,15 +3,12 @@ using System.IO;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
-using System.Security.Cryptography;
-
-#if __IOS__
-using MonoTouch.Foundation;
-#endif
+using System.Net.Http;
+using CryptSharp;
 
 namespace XamarinStore
 {
-	class Gravatar
+	public class Gravatar
 	{
 		public enum Rating { G, PG, R, X }
 
@@ -31,23 +28,15 @@ namespace XamarinStore
 		public static async Task<byte[]> GetImageBytes (string email, int size, Rating rating = Rating.PG)
 		{
 			var url = GetURL (email, size, rating);
-			var client = new WebClient ();
-			return await client.DownloadDataTaskAsync (url);
+			var client = new HttpClient ();
+			return await client.GetByteArrayAsync (url);
 		}
-
-#if __IOS__
-		public static async Task<NSData> GetImageData (string email, int size, Rating rating = Rating.PG)
-		{
-			byte[] data = await GetImageBytes (email, size, rating);
-			return NSData.FromStream (new System.IO.MemoryStream (data));
-		}
-#endif
 
 		static string MD5Hash (string input)
 		{
-			var hasher = MD5.Create ();
+			var hasher = new MD5Crypter();
 			var builder = new StringBuilder ();
-			byte[] data = hasher.ComputeHash (Encoding.Default.GetBytes (input));
+			byte[] data = Encoding.UTF8.GetBytes (hasher.Crypt (input));
 
 			foreach (byte datum in data)
 				builder.Append (datum.ToString ("x2"));

@@ -6,6 +6,7 @@ using Android.App;
 using Android.Views;
 using Android.Util;
 using Android.Content.PM;
+using System.IO;
 
 namespace XamarinStore
 {
@@ -19,7 +20,8 @@ namespace XamarinStore
 			var metrics = new DisplayMetrics (); 
 			WindowManager.DefaultDisplay.GetMetrics (metrics);
 			Images.ScreenWidth = metrics.WidthPixels;
-			FileCache.SaveLocation = CacheDir.AbsolutePath;
+
+			FileCache.FileExists = (file)=> (File.Exists(file));
 			base.OnCreate (bundle);
 			SetContentView (Resource.Layout.Main);
 

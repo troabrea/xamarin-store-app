@@ -74,7 +74,7 @@ namespace XamarinStore
 					paint.SetShader (shader1);
 					canvas.DrawRect (bounds, paint);
 				} else
-					canvas.DrawColor (defaultColor);
+					canvas.DrawColor (defaultColor.ToAndroidColor());
 			}
 			if (alpha != 0) {
 				paint.Alpha = alpha;
@@ -85,7 +85,7 @@ namespace XamarinStore
 					paint.SetShader (shader2);
 					canvas.DrawRect (bounds, paint);
 				} else
-					canvas.DrawColor (defaultColor);
+					canvas.DrawColor (defaultColor.ToAndroidColor());
 			}
 		}
 

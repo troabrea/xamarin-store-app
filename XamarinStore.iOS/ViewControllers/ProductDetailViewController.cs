@@ -152,7 +152,12 @@ namespace XamarinStore.iOS
 		async void loadImages()
 		{
 			for (int i = 0; i < imageUrls.Length; i++) {
-				var path = await FileCache.Download (Product.ImageForSize (imageUrls [i], 320 * UIScreen.MainScreen.Scale));
+				var pathTask = FileCache.Download (Product.ImageForSize (imageUrls [i], 320 * UIScreen.MainScreen.Scale));
+				string path = "";
+				if (pathTask.IsCompleted)
+					path = pathTask.Result;
+				else
+					path = await pathTask;
 				imageView.Images [i] = UIImage.FromFile (path);
 			}
 		}

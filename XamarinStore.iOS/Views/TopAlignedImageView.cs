@@ -57,11 +57,9 @@ namespace XamarinStore
 				return;
 			}
 			progress.StartAnimating ();
-			var image = UIImage.FromFile(await t);
-
-			UIView.Animate (.3, 
-				() => Image = image,
-				() => progress.StopAnimating ());
+			var file = await t;
+			Image = UIImage.FromFile(file);
+			progress.StopAnimating ();
 		}
 
 	

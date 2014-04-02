@@ -28,7 +28,7 @@ namespace XamarinStore
 		public BadgeView ()
 		{
 			BackgroundColor = UIColor.Clear;
-			TextColor = Color.Blue;
+			TextColor = Color.Blue.ToUIColor();
 			Font = UIFont.BoldSystemFontOfSize (10f);;
 			UserInteractionEnabled = false;
 			Layer.CornerRadius = height / 2;

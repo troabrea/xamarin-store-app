@@ -5,8 +5,9 @@ using System.Text;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Collections.Generic;
-
 using Xamarin.SSO.Client;
+using System.Net.Http;
+using System.Diagnostics;
 
 namespace XamarinStore
 {
@@ -15,6 +16,7 @@ namespace XamarinStore
 		public static readonly WebService Shared = new WebService ();
 
 		public User CurrentUser { get; set; }
+
 		public Order CurrentOrder { get; set; }
 
 		XamarinSSOClient client = new XamarinSSOClient ("https://auth.xamarin.com", "0c833t3w37jq58dj249dt675a465k6b0rz090zl3jpoa9jw8vz7y6awpj5ox0qmb");
@@ -28,7 +30,7 @@ namespace XamarinStore
 		{
 			AccountResponse response;
 			try {
-				var request = Task.Run (() => response = client.CreateToken (username, password));
+				var request = client.CreateToken (username, password);
 				response = await request;
 				if (response.Success) {
 					var user = response.User;
@@ -40,39 +42,42 @@ namespace XamarinStore
 					};
 					return true;
 				} else {
-					Console.WriteLine ("Login failed: {0}", response.Error);
+					Debug.WriteLine ("Login failed: {0}", response.Error);
 				}
 			} catch (Exception ex) {
-				Console.WriteLine ("Login failed for some reason...: {0}", ex.Message);
+				Debug.WriteLine ("Login failed for some reason...: {0}", ex.Message);
 			}
 			return false;
 		}
 
 		List<Product> products;
-		public async Task<List<Product>> GetProducts()
+
+		public async Task<List<Product>> GetProducts ()
 		{
 			if (products == null) {
-				products = await Task.Factory.StartNew (() => {
-					try {
-						string extraParams = "";
+				try {
+					string extraParams = "";
 
-						//TODO: Get a Monkey!!!
-						//extraParams = "?includeMonkeys=true";
+					//TODO: Get a Monkey!!!
+					//extraParams = "?includeMonkeys=true";
 
-						var request = CreateRequest ("products" + extraParams);
+					var request = CreateClient ();
 
-						string response = ReadResponseText (request);
-						return Newtonsoft.Json.JsonConvert.DeserializeObject<List<Product>> (response);
-					} catch (Exception ex) {
-						Console.WriteLine (ex);
-						return new List<Product> ();
-					}
-				});
+					var response = await request.GetStringAsync ("products" + extraParams);
+
+
+					products = await Task.Run (() => Newtonsoft.Json.JsonConvert.DeserializeObject<List<Product>> (response));
+				} catch (Exception ex) {
+					Debug.WriteLine (ex);
+					products = new List<Product> ();
+				}
 			}
 			return products;
 		}
+
 		bool hasPreloadedImages;
-		public async Task PreloadImages(float imageWidth)
+
+		public async Task PreloadImages (float imageWidth)
 		{
 			if (hasPreloadedImages)
 				return;
@@ -81,43 +86,45 @@ namespace XamarinStore
 			#pragma warning disable 4014
 			GetCountries ();
 			#pragma warning restore 4014
-			await Task.Factory.StartNew (() => {
+			await Task.Factory.StartNew (async () => {
 				var imagUrls = products.SelectMany (x => x.ImageUrls.Select (y => Product.ImageForSize (y, imageWidth))).ToList ();
-				imagUrls.ForEach( async (x) => await FileCache.Download(x));
-
-			});
-
-
-		}
-		List<Country> countries = new List<Country>();
-		public Task<List<Country>> GetCountries()
-		{
-			return Task.Factory.StartNew (() => {
-				try {
-
-					if(countries.Count > 0)
-						return countries;
-
-					var request = CreateRequest ("Countries");
-					string response = ReadResponseText (request);
-					countries = Newtonsoft.Json.JsonConvert.DeserializeObject<List<Country>> (response);
-					return countries;
-				} catch (Exception ex) {
-					Console.WriteLine (ex);
-					return new List<Country> ();
+				foreach(var image in imagUrls)
+				{
+					await FileCache.Download (image);
 				}
+
 			});
+
+
 		}
 
-		public async Task<string> GetCountryCode(string country)
+		List<Country> countries = new List<Country> ();
+
+		public async Task<List<Country>> GetCountries ()
 		{
-			var c = (await GetCountries ()).FirstOrDefault (x => x.Name == country) ?? new Country();
+			try {
+
+				if (countries.Count > 0)
+					return countries;
+				var httpClient = CreateClient();
+				string response =  await httpClient.GetStringAsync("Countries");
+				countries =  await Task.Run(() => Newtonsoft.Json.JsonConvert.DeserializeObject<List<Country>> (response));
+				return countries;
+			} catch (Exception ex) {
+				Debug.WriteLine (ex);
+				return new List<Country> ();
+			}
+		}
+
+		public async Task<string> GetCountryCode (string country)
+		{
+			var c = (await GetCountries ()).FirstOrDefault (x => x.Name == country) ?? new Country ();
 
 			return c.Code;
 		}
 		//No need to await anything, and no need to spawn a task to return a list.
 		#pragma warning disable 1998
-		public  async Task<List<string>> GetStates(string country)
+		public  async Task<List<string>> GetStates (string country)
 		{
 			if (country.ToLower () == "united states")
 				return new List<string> {
@@ -177,50 +184,34 @@ namespace XamarinStore
 		}
 		#pragma warning restore 1998
 
-		static HttpWebRequest CreateRequest(string location)
+		protected virtual HttpClient CreateClient ()
 		{
-			var request = (HttpWebRequest)WebRequest.Create ("https://xamarin-store-app.xamarin.com/api/"+ location);
-			request.Method = "GET";
-			request.ContentType = "application/json";
-			request.Accept = "application/json";
-			return request;
+			var c = new HttpClient ();
+			c.BaseAddress = new Uri ("https://xamarin-store-app.xamarin.com/api/");
+			c.Timeout = new TimeSpan (0, 10, 0);
+			return c;
 		}
-			
 
-		public Task<OrderResult> PlaceOrder (User user, bool verify = false) {
-			return Task.Factory.StartNew (() => {
-				try {
-					var content = Encoding.UTF8.GetBytes (CurrentOrder.GetJson (user));
+		public async Task<OrderResult> PlaceOrder (User user, bool verify = false)
+		{
 
-					var request = CreateRequest ("order" + (verify ? "?verify=1" : ""));
-					request.Method = "POST";
-					request.ContentLength = content.Length;
+			try {
+				var content = CurrentOrder.GetJson (user);
+				var request = CreateClient ();
 
-					using (Stream s = request.GetRequestStream ()) {
-						s.Write (content, 0, content.Length);
-					}
-					string response = ReadResponseText (request);
-					var result = Newtonsoft.Json.JsonConvert.DeserializeObject<OrderResult> (response);
-					if(!verify && result.Success)
-						CurrentOrder = new Order();
-					return result;
-				} catch (Exception ex) {
-					return new OrderResult {
-						Success = false,
-						Message = ex.Message,
-					};
-				}
-			});
-		}
-			
-
-		protected static string ReadResponseText (HttpWebRequest req) {
-			using (WebResponse resp = req.GetResponse ()) {
-				using (Stream s = (resp).GetResponseStream ()) {
-					using (var r = new StreamReader (s, Encoding.UTF8)) {
-						return r.ReadToEnd ();
-					}
-				}
+				var responseMessage = await request.PostAsync ("order" + (verify ? "?verify=1" : ""), new StringContent (content, Encoding.UTF8, "application/json"));
+				var response = await responseMessage.Content.ReadAsStringAsync();
+					
+				var result = await Task.Run (() => Newtonsoft.Json.JsonConvert.DeserializeObject<OrderResult> (response));
+				if (!verify && result.Success)
+					CurrentOrder = new Order ();
+				return result;
+			} catch (Exception ex) {
+				Debug.WriteLine (ex);
+				return new OrderResult {
+					Success = false,
+					Message = ex.Message,
+				};
 			}
 		}
 	}

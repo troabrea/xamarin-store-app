@@ -194,7 +194,7 @@ namespace XamarinStore
 						Font = UIFont.BoldSystemFontOfSize (15f),
 						BackgroundColor = UIColor.Clear,
 						TextAlignment = UITextAlignment.Right,
-						TextColor = Color.Blue,
+						TextColor = Color.Blue.ToUIColor(),
 					};
 					PriceLabel.SizeToFit ();
 					AccessoryView = new UIView (new RectangleF (0, 0, PriceLabel.Frame.Width + 10, 54)) {

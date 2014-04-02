@@ -18,7 +18,7 @@ namespace XamarinStore
 		public BottomButtonView()
 		{
 			this.AddSubview(Button = new  ImageButton());
-			Button.Layer.BackgroundColor = Color.Green;
+			Button.Layer.BackgroundColor = Color.Green.ToUIColor().CGColor;
 			Button.Layer.CornerRadius = 5f;
 			Button.Font = UIFont.BoldSystemFontOfSize (UIFont.ButtonFontSize);
 			Button.SizeToFit();

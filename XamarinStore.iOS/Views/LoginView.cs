@@ -121,7 +121,8 @@ namespace XamarinStore
 			NSData data;
 
 			try {
-				data = await Gravatar.GetImageData (email, (int) GravatarSize.Width * 2);
+				var bytes = await Gravatar.GetImageBytes (email, (int) GravatarSize.Width * 2);
+				data = NSData.FromStream (new System.IO.MemoryStream (bytes));
 			} catch {
 				return;
 			}

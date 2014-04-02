@@ -1,7 +1,6 @@
 using System;
 using System.Linq;
 using System.Reflection;
-using System.ComponentModel;
 
 namespace XamarinStore
 {
@@ -12,7 +11,7 @@ namespace XamarinStore
 		PlushMonkey
 	}
 
-	public class Product : ICloneable
+	public class Product 
 	{
 		static Random random = new Random ();
 

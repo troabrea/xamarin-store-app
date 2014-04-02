@@ -58,7 +58,7 @@ namespace XamarinStore
 			: base (UITableViewCellStyle.Value1, Key)
 		{
 			SelectionStyle = UITableViewCellSelectionStyle.None;
-			TextLabel.TextColor = Color.Purple;
+			TextLabel.TextColor = Color.Purple.ToUIColor();
 			ViewForPicker = viewForPicker;
 			Accessory = UITableViewCellAccessory.DisclosureIndicator;
 

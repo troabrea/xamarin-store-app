@@ -133,7 +133,7 @@ namespace XamarinStore.iOS
 				priceLabel = new UILabel {
 					Alpha = 0.95f,
 					TextColor = UIColor.White,
-					BackgroundColor = Color.Green,
+					BackgroundColor = Color.Green.ToUIColor(),
 					TextAlignment = UITextAlignment.Center,
 					Font = UIFont.FromName ("HelveticaNeue", 16),
 					ShadowColor = UIColor.LightGray,

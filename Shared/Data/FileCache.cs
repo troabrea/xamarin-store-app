@@ -1,56 +1,114 @@
 ﻿using System;
 using System.Threading.Tasks;
-using System.Security.Cryptography;
 using System.Text;
 using System.IO;
 using System.Net;
 using System.Collections.Generic;
+using System.Net.Http;
+using PCLStorage;
+using System.Diagnostics;
+using CryptSharp;
 
 namespace XamarinStore
 {
-	public class FileCache
+	public static class FileCache
 	{
+		static FileCache()
+		{
+			init ();
+		}
+		public static Func<string,bool> FileExists;
+		static bool initialized;
+		static IFolder tempfolder;
+		static IFolder imageFolder;
+		static async Task<bool> init()
+		{
+			try{
+			if (initialized)
+				return true;
+			IFolder rootFolder = FileSystem.Current.LocalStorage;
+			tempfolder = await rootFolder.CreateFolderAsync ("Cache",
+				CreationCollisionOption.OpenIfExists);
+			imageFolder = await rootFolder.CreateFolderAsync ("Images",
+				CreationCollisionOption.OpenIfExists);
+			}
+			catch(Exception ex) {
+				Debug.WriteLine (ex);
+			}
+			return initialized = true;
+		}
 
-		public static string SaveLocation;
 		public static async Task<string> Download(string url)
 		{
-			if (string.IsNullOrEmpty (SaveLocation))
-				throw new Exception ("Save location is required");
-			var fileName = md5 (url);
+			while (!initialized)
+				await Task.Delay (500);
+			var fileName = GetFileName(url);
 
-			return await Download (url, fileName);
+			var downloadTask = Download (url, fileName);
+			if (downloadTask.IsCompleted)
+				return downloadTask.Result;
+			return await downloadTask;
 		}
 
 		static object locker = new object ();
 		public static async Task<string> Download(string url, string fileName)
 		{
 			try{
-				var path = Path.Combine (SaveLocation, fileName);
-				if (File.Exists (path))
-					return path;
-					
-				await GetDownload(url,path);
+				var path = Path.Combine (tempfolder.Path, fileName);
+				var destination = Path.Combine(imageFolder.Path,fileName);
+				if(FileExists != null && FileExists(destination))
+					return destination;
+				var exists = await imageFolder.CheckExistsAsync(fileName);
+				if (exists == ExistenceCheckResult.FileExists)
+				{
+					return destination;
+				}
 
-				return path;
+				var succes = await GetDownload(url,path,destination);
+				return succes  ? destination : "";
 			}
 			catch(Exception ex) {
-				Console.WriteLine (ex);
+				Debug.WriteLine (ex);
 				return  "";
 			}
 		}
 
-		static Dictionary<string,Task> downloadTasks = new Dictionary<string, Task> ();
-		static Task GetDownload(string url, string fileName)
+		static Dictionary<string,Task<bool>> downloadTasks = new Dictionary<string, Task<bool>> ();
+		static Task<bool> GetDownload(string url, string fileName,string destination)
 		{
 			lock (locker) {
-				Task task;
+				Task<bool> task;
 				if (downloadTasks.TryGetValue (fileName, out task))
 					return task;
-				var client = new WebClient ();
-				downloadTasks.Add (fileName, task = client.DownloadFileTaskAsync (url, fileName));
+
+				downloadTasks.Add (fileName, task = download (url, fileName,destination));
 				return task;
 
 			}
+		}
+		static async Task<bool> download(string url, string fileName,string destination)
+		{ 
+			IFile file = null;
+			try{
+				var client = new HttpClient ();
+				var data = await client.GetByteArrayAsync (url);
+				file = await tempfolder.CreateFileAsync (fileName,
+					CreationCollisionOption.ReplaceExisting);
+				using(var fileStream = await file.OpenAsync (FileAccess.ReadAndWrite)){
+					fileStream.Write (data, 0, data.Length);
+				}
+				if(ProcessImage != null)
+					await ProcessImage(fileName,destination);
+				else
+					await file.MoveAsync(destination);
+				return true;
+			}
+			catch(Exception ex) {
+				Debug.WriteLine (ex);
+			}
+			if (file != null)
+				await file.DeleteAsync ();
+			return false;
 		}
 		static void removeTask(string fileName)
 		{
@@ -59,25 +117,15 @@ namespace XamarinStore
 			}
 		}
 
-
-		static MD5CryptoServiceProvider checksum = new MD5CryptoServiceProvider ();
-		static int hex (int v)
+		public static Func<string,string,Task> ProcessImage;
+		static string GetFileName(String hrefLink)
 		{
-			if (v < 10)
-				return '0' + v;
-			return 'a' + v-10;
+			return hrefLink.GetHashCode ().ToString ();
+
+			//return Path.GetFileName(Uri.UnescapeDataString(hrefLink).Replace("/", "\\"));
 		}
 
-		static string md5 (string input)
-		{
-			var bytes = checksum.ComputeHash (Encoding.UTF8.GetBytes (input));
-			var ret = new char [32];
-			for (int i = 0; i < 16; i++){
-				ret [i*2] = (char)hex (bytes [i] >> 4);
-				ret [i*2+1] = (char)hex (bytes [i] & 0xf);
-			}
-			return new string (ret);
-		}
+
 	}
 }
 

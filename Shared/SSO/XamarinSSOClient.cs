@@ -1,92 +1,95 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 using System.IO;
 using System.Net;
-using System.Text;
-using System.Web;
 using Newtonsoft.Json;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Threading.Tasks;
 
 namespace Xamarin.SSO.Client {
-    public class XamarinSSOClient {
-        const int TimeoutSeconds = 30;
-        const string user_agent = "XamarinSSO .NET v1.0";
-        static Encoding encoding = Encoding.UTF8;
-        string auth_api_url;
-        string apikey;
+	public class XamarinSSOClient {
+		const int TimeoutSeconds = 30;
+		const string user_agent = "XamarinSSO .NET v1.0";
+		static Encoding encoding = Encoding.UTF8;
+		string auth_api_url;
+		string accounts_api_url;
+		string apikey;
 
-        public XamarinSSOClient (string apikey) : this ("https://auth.xamarin.com", apikey)
-        {
-        }
+		public XamarinSSOClient (string apikey) : this ("https://auth.xamarin.com", apikey)
+		{
+		}
 
-        public XamarinSSOClient (string base_url, string apikey)
-        {
-            auth_api_url = base_url + "/api/v1/auth";
-            this.apikey = apikey;
-        }
+		public XamarinSSOClient (string base_url, string apikey)
+		{
+			auth_api_url = base_url + "/api/v1/auth";
+			accounts_api_url = base_url + "/api/v1/accounts";
+			this.apikey = apikey;
+		}
 
-        protected virtual WebRequest SetupRequest (string method, string url)
-        {
-            WebRequest req = (WebRequest) WebRequest.Create (url);
-            req.Method = method;
-            if (req is HttpWebRequest) {
-                ((HttpWebRequest) req).UserAgent = user_agent;
-            }
-            req.Credentials = new NetworkCredential (apikey, "");
-            req.PreAuthenticate = true;
-            req.Headers.Add ("Authorization", "Basic " + Convert.ToBase64String (Encoding.UTF8.GetBytes (apikey + ":")));
-            req.Timeout = TimeoutSeconds * 1000;
-            if (method == "POST" || method == "PUT")
-                req.ContentType = "application/x-www-form-urlencoded";
+		protected virtual HttpClient SetupRequest (string url)
+		{
+			var credentials = new NetworkCredential(apikey, "");
+			var handler = new HttpClientHandler { Credentials = credentials };
+			handler.PreAuthenticate = true;
 
-            return req;
-        }
 
-        static string GetResponseAsString (WebResponse response)
-        {
-            using (StreamReader sr = new StreamReader (response.GetResponseStream (), encoding)) {
-                return sr.ReadToEnd ();
-            }
-        }
+			var client = new HttpClient (handler);
+			client.BaseAddress = new Uri( url);
+			client.DefaultRequestHeaders.Add("User-Agent",user_agent);
+			client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue ("Basic", Convert.ToBase64String (Encoding.UTF8.GetBytes (apikey + ":")));
+			client.Timeout = new TimeSpan(0,10,0);
+			return client;
+		}
 
-        protected virtual string DoRequest (string endpoint, string method = "GET", string body = null)
-        {
-            string result = null;
-            WebRequest req = SetupRequest (method, endpoint);
-            if (body != null) {
-                byte [] bytes = encoding.GetBytes (body.ToString ());
-                req.ContentLength = bytes.Length;
-                using (Stream st = req.GetRequestStream ()) {
-                    st.Write (bytes, 0, bytes.Length);
-                }
-            }
+		static string GetResponseAsString (WebResponse response)
+		{
+			using (StreamReader sr = new StreamReader (response.GetResponseStream (), encoding)) {
+				return sr.ReadToEnd ();
+			}
+		}
 
-            try {
-                using (WebResponse resp = (WebResponse) req.GetResponse ()) {
-                    result = GetResponseAsString (resp);
-                }
-            } catch (WebException) {
-                throw;
-            }
-            return result;
-        }
+		protected virtual async Task<string> DoRequest (string endpoint, string method = "GET", string body = null)
+		{
+			string result = null;
+			var req = SetupRequest (endpoint);
 
-        public AccountResponse CreateToken (string email, string password)
-        {
-            if (String.IsNullOrWhiteSpace (email))
-                throw new ArgumentNullException ("email");
-            if (String.IsNullOrWhiteSpace (password))
-                throw new ArgumentNullException ("password");
+			HttpContent content = body == null ? null : new StringContent (body, Encoding.UTF8,"application/x-www-form-urlencoded");
 
-            var str = String.Format ("email={0}&password={1}", UrlEncode (email), UrlEncode (password));
-            string json = DoRequest (auth_api_url, "POST", str);
-            return JsonConvert.DeserializeObject<AccountResponse> (json);
-        }
+			try {
+				if(method == "GET"){
+					result = await req.GetStringAsync(endpoint);
+				}
+				else if(method == "POST")
+					result = await (await req.PostAsync(endpoint,content)).Content.ReadAsStringAsync();
+				else if(method == "PUT")
+					result = await (await req.PutAsync(endpoint,content)).Content.ReadAsStringAsync();
+			} catch (WebException) {
+				throw;
+			}
+			return result;
+		}
 
-        static string UrlEncode (string src)
-        {
-            if (src == null)
-                return null;
-            return HttpUtility.UrlEncode (src);
-        }
-    }
+		public async Task<AccountResponse> CreateToken (string email, string password)
+		{
+			if (String.IsNullOrWhiteSpace (email))
+				throw new ArgumentNullException ("email");
+			if (String.IsNullOrWhiteSpace (password))
+				throw new ArgumentNullException ("password");
+
+			var str = String.Format ("email={0}&password={1}", UrlEncode (email), UrlEncode (password));
+			string json = await DoRequest (auth_api_url, "POST", str);
+			return JsonConvert.DeserializeObject<AccountResponse> (json);
+		}
+
+		static string UrlEncode (string src)
+		{
+			if (src == null)
+				return null;
+			return Uri.EscapeDataString (src);
+		}
+	}
 }
 

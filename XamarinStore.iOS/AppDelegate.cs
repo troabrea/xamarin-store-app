@@ -8,6 +8,7 @@ using MonoTouch.Foundation;
 using MonoTouch.CoreAnimation;
 using MonoTouch.CoreGraphics;
 using MonoTouch.TestFlight;
+using System.IO;
 
 namespace XamarinStore.iOS
 {
@@ -24,8 +25,8 @@ namespace XamarinStore.iOS
 			TestFlight.TakeOffThreadSafe ("fb57eee9-f5f5-4ec3-96eb-404e6dd2573d");
 
 			Shared = this;
-			FileCache.SaveLocation = System.IO.Directory.GetParent (Environment.GetFolderPath (Environment.SpecialFolder.Personal)).ToString () + "/tmp";
 
+			FileCache.FileExists = (file)=> (File.Exists(file));
 			UIApplication.SharedApplication.SetStatusBarStyle (UIStatusBarStyle.LightContent, false);
 
 			window = new UIWindow (UIScreen.MainScreen.Bounds);
@@ -38,7 +39,7 @@ namespace XamarinStore.iOS
 			navigation = new UINavigationController (productVc);
 
 			navigation.NavigationBar.TintColor = UIColor.White;
-			navigation.NavigationBar.BarTintColor = Color.Blue;
+			navigation.NavigationBar.BarTintColor = Color.Blue.ToUIColor ();;
 
 			window.RootViewController = navigation;
 			window.MakeKeyAndVisible ();
