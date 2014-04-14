@@ -7,7 +7,6 @@ using MonoTouch.UIKit;
 using MonoTouch.Foundation;
 using MonoTouch.CoreAnimation;
 using MonoTouch.CoreGraphics;
-using MonoTouch.TestFlight;
 using System.IO;
 
 namespace XamarinStore.iOS
@@ -22,8 +21,6 @@ namespace XamarinStore.iOS
 
 		public override bool FinishedLaunching (UIApplication app, NSDictionary options)
 		{
-			TestFlight.TakeOffThreadSafe ("fb57eee9-f5f5-4ec3-96eb-404e6dd2573d");
-
 			Shared = this;
 
 			FileCache.FileExists = (file)=> (File.Exists(file));
@@ -88,7 +85,6 @@ namespace XamarinStore.iOS
 		public void OrderCompleted ()
 		{
 			navigation.PopToRootViewController (true);
-			//TODO: display brag view
 		}
 		BasketButton button;
 		public UIBarButtonItem CreateBasketButton ()

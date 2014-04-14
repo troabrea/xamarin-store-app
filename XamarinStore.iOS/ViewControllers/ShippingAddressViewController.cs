@@ -14,6 +14,8 @@ namespace XamarinStore
 
 		public event EventHandler ShippingComplete;
 
+		public readonly TextEntryView FirstNameField;
+		public readonly TextEntryView LastNameField;
 		public readonly TextEntryView PhoneNumberField;
 		public readonly TextEntryView AddressField;
 		public readonly TextEntryView Address2Field;
@@ -32,6 +34,17 @@ namespace XamarinStore
 			this.user = user;
 			TableView.SeparatorStyle = UITableViewCellSeparatorStyle.None;
 
+
+			Cells.Add (new CustomViewCell (FirstNameField = new TextEntryView {
+				PlaceHolder = "First Name",
+				Value = user.FirstName,
+			}));
+
+			Cells.Add (new CustomViewCell (LastNameField = new TextEntryView {
+				PlaceHolder = "Last Name",
+				Value = user.LastName,
+			}));
+
 			Cells.Add (new CustomViewCell (PhoneNumberField = new TextEntryView {
 				PlaceHolder = "Phone Number",
 				Value = user.Phone,
@@ -41,20 +54,24 @@ namespace XamarinStore
 			Cells.Add (new CustomViewCell (AddressField = new TextEntryView {
 				PlaceHolder = "Address",
 				Value = user.Address,
+				AutocapitalizationType = UITextAutocapitalizationType.Words,
 			}));
 
 			Cells.Add (new CustomViewCell (Address2Field = new TextEntryView {
 				PlaceHolder = "Address",
 				Value = user.Address2,
+				AutocapitalizationType = UITextAutocapitalizationType.Words,
 			}));
 			Cells.Add (new CustomViewCell (CityField = new TextEntryView {
 				PlaceHolder = "City",
 				Value = user.City,
+				AutocapitalizationType = UITextAutocapitalizationType.Words,
 			}));
 
 			Cells.Add (new CustomViewCell (PostalField = new TextEntryView {
 				PlaceHolder = "Postal Code",
 				Value = user.ZipCode,
+				KeyboardType = UIKeyboardType.NumbersAndPunctuation,
 			}));
 
 			Cells.Add (new CustomViewCell (CountryField = new AutoCompleteTextEntry {
@@ -89,6 +106,8 @@ namespace XamarinStore
 
 		public async void PlaceOrder()
 		{
+			user.FirstName = FirstNameField.Value;
+			user.LastName = LastNameField.Value;
 			user.Address = AddressField.Value;
 			user.Address2 = Address2Field.Value;
 			user.City = CityField.Value;
@@ -96,7 +115,7 @@ namespace XamarinStore
 			user.Phone = PhoneNumberField.Value;
 			user.State = StateField.Value;
 			user.ZipCode = PostalField.Value;
-			var isValid = user.IsInformationValid ();
+			var isValid = await user.IsInformationValid ();
 			if (!isValid.Item1) {
 
 				new UIAlertView ("Error", isValid.Item2, null, "Ok").Show ();

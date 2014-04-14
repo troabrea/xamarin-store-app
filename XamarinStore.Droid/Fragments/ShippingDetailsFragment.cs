@@ -11,6 +11,7 @@ using Android.Util;
 using Android.Views;
 using Android.Widget;
 using Android.Views.InputMethods;
+using System.Threading.Tasks;
 
 namespace XamarinStore
 {
@@ -41,11 +42,17 @@ namespace XamarinStore
 			var phone = shippingDetailsView.FindViewById<EditText> (Resource.Id.Phone);
 			phone.Text = user.Phone;
 
+			var firstName = shippingDetailsView.FindViewById<EditText> (Resource.Id.FirstName);
+			firstName.Text = user.FirstName;
+
+			var lastName = shippingDetailsView.FindViewById<EditText> (Resource.Id.LastName);
+			lastName.Text = user.LastName;
+
 			var streetAddress1 = shippingDetailsView.FindViewById<EditText> (Resource.Id.StreetAddress1);
 			streetAddress1.Text = user.Address;
 
 			var streetAddress2 = shippingDetailsView.FindViewById<EditText> (Resource.Id.StreetAddress2);
-			streetAddress2.Text = user.Address;
+			streetAddress2.Text = user.Address2;
 
 			var city = shippingDetailsView.FindViewById<EditText> (Resource.Id.City);
 			city.Text = user.City;
@@ -69,7 +76,8 @@ namespace XamarinStore
 				};
 				foreach (var entry in entries)
 					entry.Enabled = false;
-
+				user.FirstName = firstName.Text;
+				user.LastName = lastName.Text;
 				user.Phone = phone.Text;
 				user.Address = streetAddress1.Text;
 				user.Address2 = streetAddress2.Text;
@@ -98,9 +106,9 @@ namespace XamarinStore
 			state.Adapter = new ArrayAdapter(this.Activity, Android.Resource.Layout.SimpleDropDownItem1Line, states);
 		}
 
-		async System.Threading.Tasks.Task ProcessOrder ()
+		async Task ProcessOrder ()
 		{	
-			var isValid = user.IsInformationValid ();
+			var isValid = await user.IsInformationValid ();
 			if (!isValid.Item1) {
 				Toast.MakeText (Activity, isValid.Item2, ToastLength.Long).Show ();
 				return;
