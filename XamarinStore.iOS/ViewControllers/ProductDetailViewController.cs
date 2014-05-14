@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using MonoTouch.Foundation;
 using MonoTouch.UIKit;
+using MonoTouch.CoreImage;
 using System.Drawing;
 
 using System.Threading.Tasks;
@@ -117,6 +118,8 @@ namespace XamarinStore.iOS
 
 		}
 
+
+
 		string[] imageUrls = new string[0];
 		public void LoadProductData ()
 		{
@@ -130,15 +133,25 @@ namespace XamarinStore.iOS
 			imageUrls =  CurrentProduct.ImageUrls.ToArray().Shuffle();
 
 			imageView = new JBKenBurnsView {
-				Frame = new RectangleF (0, -60, 320, 400),
+				Frame = new RectangleF(0, -60, 320, 400),
 				Images = Enumerable.Range(0,imageUrls.Length).Select(x=> new UIImage()).ToList(),
 				UserInteractionEnabled = false,
 			};
+
+			var tryButton = new UIButton(new RectangleF (10, 280, 44, 44)); 
+			tryButton.SetTitle ("try", UIControlState.Normal);
+			tryButton.BackgroundColor = UIColor.Orange;
+			tryButton.SetTitleColor (UIColor.White, UIControlState.Normal);
+			tryButton.TouchUpInside += (object sender, EventArgs e) => {
+				NavigationController.PushViewController( new DresserViewController( CurrentProduct, imageView.Images.ToArray() ), true );
+			};
+
 			loadImages ();
 			var productDescriptionView = new ProductDescriptionView (CurrentProduct) {
 				Frame = new RectangleF (0, 0, 320, 120),
 			};
-			TableView.TableHeaderView = new UIView(new RectangleF(0,0,imageView.Frame.Width,imageView.Frame.Bottom)){imageView};
+
+			TableView.TableHeaderView = new UIView(new RectangleF(0,0,imageView.Frame.Width,imageView.Frame.Bottom)){imageView,tryButton};
 			var tableItems = new List<UITableViewCell> () {
 				new CustomViewCell (productDescriptionView),
 			};

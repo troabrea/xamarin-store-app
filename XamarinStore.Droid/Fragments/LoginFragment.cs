@@ -87,7 +87,7 @@ namespace XamarinStore
 
 		// TODO: Enter your Xamarin account email address here
 		// If you do not have a Xamarin Account please sign up here: https://store.xamarin.com/account/register
-		readonly string XamarinAccountEmail = "";
+		readonly string XamarinAccountEmail = "baezpaola@me.com";
 		async void Login (string username, string password)
 		{
 			var progressDialog = ProgressDialog.Show (this.Activity, "Please wait...", "Logging in", true);

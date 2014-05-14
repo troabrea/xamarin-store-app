@@ -37,6 +37,9 @@ namespace XamarinStore.iOS
 			navigation.NavigationBar.TintColor = UIColor.White;
 			navigation.NavigationBar.BarTintColor = Color.Blue;
 
+			navigation.Toolbar.BarTintColor = Color.Blue;
+			navigation.Toolbar.TintColor = UIColor.White;
+
 			window.RootViewController = navigation;
 			window.MakeKeyAndVisible ();
 			return true;

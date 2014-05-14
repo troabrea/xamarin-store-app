@@ -35,6 +35,17 @@ namespace XamarinStore
 					progress.RemoveFromSuperview ();
 				});
 		}
+		public static UIImage CropImage( UIImage image, RectangleF rect )
+		{
+			if (rect.X == 0 && rect.Y == 0 && rect.Size == image.Size) {
+				return image;
+			}
+			UIGraphics.BeginImageContextWithOptions(rect.Size,false,1);
+			image.Draw( new PointF(-rect.X,-rect.Y) );
+			var croppedImage = UIGraphics.GetImageFromCurrentImageContext();
+			UIGraphics.EndImageContext();
+			return croppedImage;
+		}
 	}
 }
 

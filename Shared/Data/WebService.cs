@@ -57,7 +57,7 @@ namespace XamarinStore
 						string extraParams = "";
 
 						//TODO: Get a Monkey!!!
-						//extraParams = "?includeMonkeys=true";
+						extraParams = "?includeMonkeys=true";
 
 						var request = CreateRequest ("products" + extraParams);
 
