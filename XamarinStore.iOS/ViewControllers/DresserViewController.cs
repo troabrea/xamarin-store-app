@@ -61,8 +61,6 @@ namespace XamarinStore
 				})
 			};
 
-			NavigationController.ToolbarHidden = false;
-
 			scrollView = new UIScrollView (View.Bounds);
 			scrollView.DelaysContentTouches = true;
 
@@ -106,6 +104,18 @@ namespace XamarinStore
 			NSUserDefaults.StandardUserDefaults.SetValueForKey (photoData, (NSString)"USER_PHOTO_DATA");
 			//
 			DetectFaces ();
+		}
+
+		public override void ViewWillAppear (bool animated)
+		{
+			base.ViewWillAppear (animated);
+			NavigationController.ToolbarHidden = false;
+		}
+
+		public override void ViewWillDisappear (bool animated)
+		{
+			base.ViewWillDisappear (animated);
+			NavigationController.ToolbarHidden = true;
 		}
 
 		public override void ViewDidAppear (bool animated)
@@ -175,15 +185,22 @@ namespace XamarinStore
 
 		void PickUserPhoto ()
 		{
-			var sheet = new UIActionSheet ( "Pick or take a photo of your face...", null,"Cancel",null,new string[] {"Camera","Photo Library"});
+			var sources = new string[] { "Photo Library"};
+			if (UIImagePickerController.IsSourceTypeAvailable(UIImagePickerControllerSourceType.Camera)) {
+				sources = new string[] { "Photo Library", "Camera" };
+			}
+			var sheet = new UIActionSheet ( "Pick or take a photo of your face...", null,"Cancel",null,sources);
 			sheet.Clicked += (object sender, UIButtonEventArgs e) => {
-				if (e.ButtonIndex == 1) {
+				if (e.ButtonIndex == sheet.CancelButtonIndex) {
+					return;
+				}
+				if (e.ButtonIndex == 0) {
 					Camera.SelectPicture(this,(obj) => {
 						var photo = (UIImage)obj.ValueForKey(new NSString("UIImagePickerControllerEditedImage") );
 						SaveUserPhoto(photo);
 					});
 				}
-				if (e.ButtonIndex == 0) {
+				if ( e.ButtonIndex == 1 ) {
 					Camera.TakePicture(this,(obj) => {
 						var photo = (UIImage)obj.ValueForKey(new NSString("UIImagePickerControllerEditedImage") );
 						SaveUserPhoto(photo);
