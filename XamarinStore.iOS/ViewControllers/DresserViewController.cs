@@ -139,6 +139,7 @@ namespace XamarinStore
 				CIImage image =  new CIImage(currentImage);
 				var features = await GetFeatures( image );
 				DrawImageAnnotatedWithFeatures (features);
+				image.Dispose();
 			} finally {
 				BTProgressHUD.Dismiss ();
 			}
@@ -167,20 +168,19 @@ namespace XamarinStore
 
 			faceImage.Draw (imageView.Bounds);
 
-			var context = UIGraphics.GetCurrentContext ();
-
-			// Flip Context
-			context.TranslateCTM (0, imageView.Bounds.Size.Height);
-			context.ScaleCTM (1.0f, -1.0f);
-			foreach (CIFaceFeature feature in features) {
-				var faceRect = AdjustFaceRect(feature.Bounds);
-				var gearImage = userPhoto == null ? UIImage.FromBundle ("user-default-avatar").Scale (faceRect.Size) : userPhoto.Scale(faceRect.Size);
-				gearImage = UIImage.FromImage (gearImage.CGImage, gearImage.CurrentScale, UIImageOrientation.DownMirrored);
-				gearImage.Draw (faceRect);
+			using (var context = UIGraphics.GetCurrentContext ()) {
+				// Flip Context
+				context.TranslateCTM (0, imageView.Bounds.Size.Height);
+				context.ScaleCTM (1.0f, -1.0f);
+				foreach (CIFaceFeature feature in features) {
+					var faceRect = AdjustFaceRect (feature.Bounds);
+					var gearImage = userPhoto == null ? UIImage.FromBundle ("user-default-avatar").Scale (faceRect.Size) : userPhoto.Scale (faceRect.Size);
+					gearImage = UIImage.FromImage (gearImage.CGImage, gearImage.CurrentScale, UIImageOrientation.DownMirrored);
+					gearImage.Draw (faceRect);
+				}
+				imageView.Image = UIGraphics.GetImageFromCurrentImageContext ();
+				UIGraphics.EndImageContext ();
 			}
-			imageView.Image = UIGraphics.GetImageFromCurrentImageContext ();
-			UIGraphics.EndImageContext ();
-
 		}
 
 		void PickUserPhoto ()
@@ -198,12 +198,14 @@ namespace XamarinStore
 					Camera.SelectPicture(this,(obj) => {
 						var photo = (UIImage)obj.ValueForKey(new NSString("UIImagePickerControllerEditedImage") );
 						SaveUserPhoto(photo);
+						photo.Dispose();
 					});
 				}
 				if ( e.ButtonIndex == 1 ) {
 					Camera.TakePicture(this,(obj) => {
 						var photo = (UIImage)obj.ValueForKey(new NSString("UIImagePickerControllerEditedImage") );
 						SaveUserPhoto(photo);
+						photo.Dispose();
 					});
 				}
 			};
