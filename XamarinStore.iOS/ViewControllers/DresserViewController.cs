@@ -198,14 +198,12 @@ namespace XamarinStore
 					Camera.SelectPicture(this,(obj) => {
 						var photo = (UIImage)obj.ValueForKey(new NSString("UIImagePickerControllerEditedImage") );
 						SaveUserPhoto(photo);
-						photo.Dispose();
 					});
 				}
 				if ( e.ButtonIndex == 1 ) {
 					Camera.TakePicture(this,(obj) => {
 						var photo = (UIImage)obj.ValueForKey(new NSString("UIImagePickerControllerEditedImage") );
 						SaveUserPhoto(photo);
-						photo.Dispose();
 					});
 				}
 			};
